@@ -13,6 +13,7 @@ try {
     db.sync({
         force: false
     });
+    console.log("Connection Establishd.")
 } catch (err) {
     console.log('Unable to establish connection', err);
 }
