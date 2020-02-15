@@ -30,6 +30,17 @@ const upload = multer({
     })
 }).array('image', 1);
 
+user.get('/:id', async (req, res, next) => {
+    try {
+        const user = await User.findOne({
+            where : { id: req.params.id}
+        })
+        res.status(200).send(user);
+    } catch(err) {
+        res.status(400).send(err);
+    }
+})
+
 user.post('/login', async (req, res, next) => {
     try {
         const user = await User.findOne({ where: { email: req.body.email } });
