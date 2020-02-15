@@ -6,7 +6,11 @@ const app = express();
 const router = require('./routes/index');
 
 app.use(cors());
-app.use('/', router);
+app.use('/api', router);
+
+app.get('/', (req, res, next) => {
+    res.status(200).send("Default Route.");
+})
 
 app.listen(port, () => {
     console.log(`Server listening on port: ${port}`); 

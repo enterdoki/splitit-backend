@@ -10,7 +10,7 @@ const Receipt = db.define('receipt', {
     uploadDate: {
         type: Sequelize.DATE,
         allowNull: false,
-        required:true,
+        required:true
     }
 },{
     timestamps:false
