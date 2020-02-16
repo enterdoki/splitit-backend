@@ -15,7 +15,7 @@ const History = db.define('history', {
     transactionDate: {
         type: Sequelize.DATE,
         allowNull: false,
-        required:true,
+        required:true
     },
     friendId : {
         type: Sequelize.INTEGER,
