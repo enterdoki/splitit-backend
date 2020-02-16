@@ -5,9 +5,8 @@ const user = express.Router();
 const aws = require('aws-sdk');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
-const bcrypt = require('bcrypt');
-const {check, validationResult } = require('express-validator');
 const {User, Receipt} = require('../database/models')
+const isAuthenticated = require('../middleware/authController');
 
 user.use(bodyParser.json());
 
@@ -30,7 +29,7 @@ const upload = multer({
     })
 }).array('image', 1);
 
-user.get('/:id', async (req, res, next) => {
+user.get('/:id', isAuthenticated, async (req, res, next) => {
     try {
         const user = await User.findOne({
             where : { id: req.params.id}
@@ -41,57 +40,7 @@ user.get('/:id', async (req, res, next) => {
     }
 })
 
-user.post('/login', async (req, res, next) => {
-    try {
-        const user = await User.findOne({ where: { email: req.body.email } });
-        if (user) {
-            if (bcrypt.compareSync(req.body.password, user.password)) {
-                let payload = { email: user.email };
-                let token = jwt.sign(payload, 'splititAPI');
-                res.status(200).send({ user, token });
-            } else {
-                res.status(400).send('Password is incorrect.');
-            }
-        }
-        else {
-            res.status(400).send('Credentials invalid.');
-        }
-    } catch (err) {
-        res.status(400).send(err);
-    }
-})
-
-user.post('/register',
-    [check('email').isEmail(),
-    check('firstname').isLength({ min: 1 }),
-    check('lastname').isLength({ min: 1 }),
-    ], async (req, res, next) => {
-
-        try {
-            let firstname = req.body.firstname
-            firstname = firstname[0].toUpperCase() + firstname.substr(1)
-            let lastname = req.body.lastname
-            lastname = lastname[0].toUpperCase() + lastname.substr(1)
-            const errors = validationResult(req)
-            if (!errors.isEmpty()) {
-                res.status(422).json({ errors: errors.array() })
-            }
-            else {
-                let hash_password = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(8));
-                let new_user = await User.create({
-                    firstname: firstname,
-                    lastname: lastname,
-                    email: req.body.email,
-                    password: hash_password
-                });
-                res.status(201).send(new_user);
-            }
-        } catch (err) {
-            res.status(400).send(err);
-        }
-    })
-
-user.post('/:id/upload', upload, async (req, res, next) => {
+user.post('/:id/upload', [isAuthenticated, upload], async (req, res, next) => {
     try {
         const url = `https://splitit.nyc3.cdn.digitaloceanspaces.com/${req.files[0].originalname}`
         let new_receipt = await Receipt.create({
@@ -105,7 +54,7 @@ user.post('/:id/upload', upload, async (req, res, next) => {
     }
 })
 
-user.get('/:id/receipts', async (req, res, next) => {
+user.get('/:id/receipts', isAuthenticated, async (req, res, next) => {
     try {
         const user = await User.findOne({
             where: {id: req.params.id}
