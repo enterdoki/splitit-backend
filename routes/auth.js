@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const auth = express.Router();
@@ -8,26 +9,44 @@ const {User} = require('../database/models')
 
 auth.use(bodyParser.json());
 
+/* POST /api/auth/login/ - Log In with User Credentials
+EXPECTS:
+  HEADERS:
+    - N/A
+  BODY:
+    - email: email of new user 
+    - password: password of new user 
+*/
 auth.post('/login', async (req, res, next) => {
     try {
         const user = await User.findOne({ where: { email: req.body.email } });
         if (user) {
             if (bcrypt.compareSync(req.body.password, user.password)) {
                 let payload = { email: user.email };
-                let token = jwt.sign(payload, 'splititAPI');
+                let token = jwt.sign(payload, process.env.JWT_SECRET);
                 res.status(200).send({ user, token });
             } else {
                 res.status(400).send('Password is incorrect.');
             }
         }
         else {
-            res.status(400).send('Credentials invalid.');
+            res.status(200).send('Credentials invalid.');
         }
     } catch (err) {
         res.status(400).send(err);
     }
 })
 
+/* POST /api/auth/register/ - Register a new user
+EXPECTS:
+  HEADERS:
+    - N/A
+  BODY:
+    - firstname: firstname of new user 
+    - lastname: lastname of new user 
+    - email: email of new user
+    - password: password of new user
+*/
 auth.post('/register',
     [check('email').isEmail(),
     check('firstname').isLength({ min: 1 }),
@@ -45,11 +64,13 @@ auth.post('/register',
             }
             else {
                 let hash_password = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(8));
+                const url = "https://splitit.nyc3.cdn.digitaloceanspaces.com/default_picture.png";
                 let new_user = await User.create({
-                    firstname: firstname,
-                    lastname: lastname,
+                    firstName: firstname,
+                    lastName: lastname,
                     email: req.body.email,
-                    password: hash_password
+                    password: hash_password,
+                    profilePicture: url
                 });
                 res.status(201).send(new_user);
             }

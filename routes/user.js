@@ -29,17 +29,34 @@ const upload = multer({
     })
 }).array('image', 1);
 
+/* GET /api/user/<id> - Gets info of given user
+EXPECTS:
+  HEADERS:
+    - 'Authorization': 'Bearer <token>'
+*/
 user.get('/:id', isAuthenticated, async (req, res, next) => {
     try {
         const user = await User.findOne({
             where : { id: req.params.id}
         })
-        res.status(200).send(user);
+        if(user) {
+            res.status(200).send(user);
+        }
+        else {
+            res.status(200).send("No user exists.");
+        }
     } catch(err) {
         res.status(400).send(err);
     }
 })
 
+/* POST /api/user/<id>/upload - Saves uploaded image under given user
+EXPECTS:
+  HEADERS:
+    - 'Authorization': 'Bearer <token>'
+  BODY (form-data):
+    - image: user selected image
+*/
 user.post('/:id/upload', [isAuthenticated, upload], async (req, res, next) => {
     try {
         const url = `https://splitit.nyc3.cdn.digitaloceanspaces.com/${req.files[0].originalname}`
@@ -54,17 +71,44 @@ user.post('/:id/upload', [isAuthenticated, upload], async (req, res, next) => {
     }
 })
 
+/* GET /api/user/<id>/receipts - Get all receipts of given user
+EXPECTS:
+  HEADERS:
+    - 'Authorization': 'Bearer <token>'
+*/
 user.get('/:id/receipts', isAuthenticated, async (req, res, next) => {
     try {
         const user = await User.findOne({
             where: {id: req.params.id}
         })
-        if(!user) res.status(400).send("User not found.")
+        if(!user) res.status(200).send("No user exists.")
         else {
             const receipts = await Receipt.findAll({
                 where: {userId: req.params.id}
             })
             res.status(200).send(receipts)
+        }
+    } catch(err) {
+        res.status(400).send(err);
+    }
+})
+
+/* PUT /api/user/<id>/picture - Updates user profile picture
+EXPECTS:
+  HEADERS:
+    - 'Authorization': 'Bearer <token>'
+  BODY (form-data):
+    - image: user selected image
+*/
+user.put('/:id/picture', [isAuthenticated, upload], async(req, res, next) => {
+    try {
+        const url = `https://splitit.nyc3.cdn.digitaloceanspaces.com/${req.files[0].originalname}`
+        const user = await User.update({profilePicture: url}, {where : {id : req.params.id}});
+        if(user) {
+            res.status(200).send("Updated profile picture!");
+        }
+        else {
+            res.status(200).send("No user exists.");
         }
     } catch(err) {
         res.status(400).send(err);
