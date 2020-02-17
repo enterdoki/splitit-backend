@@ -5,7 +5,7 @@ const user = express.Router();
 const aws = require('aws-sdk');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
-const {User, Receipt} = require('../database/models')
+const { User, Receipt } = require('../database/models')
 const isAuthenticated = require('../middleware/authController');
 
 user.use(bodyParser.json());
@@ -37,15 +37,16 @@ EXPECTS:
 user.get('/:id', isAuthenticated, async (req, res, next) => {
     try {
         const user = await User.findOne({
-            where : { id: req.params.id}
+            where: { id: req.params.id },
+            attributes: { exclude: ['password'] }
         })
-        if(user) {
+        if (user) {
             res.status(200).send(user);
         }
         else {
             res.status(200).send("No user exists.");
         }
-    } catch(err) {
+    } catch (err) {
         res.status(400).send(err);
     }
 })
@@ -63,7 +64,7 @@ user.post('/:id/upload', [isAuthenticated, upload], async (req, res, next) => {
         let new_receipt = await Receipt.create({
             imageURL: url,
             uploadDate: Date.now(),
-            userId: req.params.id  
+            userId: req.params.id
         })
         res.status(201).send(new_receipt)
     } catch (err) {
@@ -79,16 +80,16 @@ EXPECTS:
 user.get('/:id/receipts', isAuthenticated, async (req, res, next) => {
     try {
         const user = await User.findOne({
-            where: {id: req.params.id}
+            where: { id: req.params.id }
         })
-        if(!user) res.status(200).send("No user exists.")
+        if (!user) res.status(200).send("No user exists.")
         else {
             const receipts = await Receipt.findAll({
-                where: {userId: req.params.id}
+                where: { userId: req.params.id }
             })
             res.status(200).send(receipts)
         }
-    } catch(err) {
+    } catch (err) {
         res.status(400).send(err);
     }
 })
@@ -100,23 +101,27 @@ EXPECTS:
   BODY (form-data):
     - image: user selected image
 */
-user.put('/:id/picture', [isAuthenticated, upload], async(req, res, next) => {
+user.put('/:id/picture', [isAuthenticated, upload], async (req, res, next) => {
     try {
         const url = `https://splitit.nyc3.cdn.digitaloceanspaces.com/${req.files[0].originalname}`
-        const user = await User.update({profilePicture: url}, {where : {id : req.params.id}});
-        if(user) {
+        const user = await User.update({
+            profilePicture: url
+        },
+            { where: { id: req.params.id } }
+        );
+        if (user) {
             res.status(200).send("Updated profile picture!");
         }
         else {
             res.status(200).send("No user exists.");
         }
-    } catch(err) {
+    } catch (err) {
         res.status(400).send(err);
     }
 })
 
 user.get('*', (req, res, next) => {
-    res.status(200).send("This is the default User Route.");
+    res.status(200).send("Default User Route.");
 })
 
 module.exports = user;

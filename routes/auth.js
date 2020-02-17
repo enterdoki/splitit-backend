@@ -19,7 +19,9 @@ EXPECTS:
 */
 auth.post('/login', async (req, res, next) => {
     try {
-        const user = await User.findOne({ where: { email: req.body.email } });
+        const user = await User.findOne({ 
+            where: { email: req.body.email }
+        });
         if (user) {
             if (bcrypt.compareSync(req.body.password, user.password)) {
                 let payload = { email: user.email };
@@ -54,15 +56,21 @@ auth.post('/register',
     ], async (req, res, next) => {
 
         try {
-            let firstname = req.body.firstname
-            firstname = firstname[0].toUpperCase() + firstname.substr(1)
-            let lastname = req.body.lastname
-            lastname = lastname[0].toUpperCase() + lastname.substr(1)
             const errors = validationResult(req)
             if (!errors.isEmpty()) {
                 res.status(422).json({ errors: errors.array() })
             }
+            const check = await User.findOne({
+                where: { email: req.body.email}
+            })
+            if(check) {
+                res.status(200).send("Email already exists.");
+            }
             else {
+                let firstname = req.body.firstname
+                firstname = firstname[0].toUpperCase() + firstname.substr(1)
+                let lastname = req.body.lastname
+                lastname = lastname[0].toUpperCase() + lastname.substr(1)
                 let hash_password = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(8));
                 const url = "https://splitit.nyc3.cdn.digitaloceanspaces.com/default_picture.png";
                 let new_user = await User.create({
@@ -80,7 +88,7 @@ auth.post('/register',
     })
 
 auth.get('*', (req, res, next) => {
-    res.status(200).send("Default auth route.");
+    res.status(200).send("Default Auth route.");
 })
 
 module.exports = auth;
