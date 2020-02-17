@@ -25,4 +25,8 @@ search.get('/:email', isAuthenticated, async (req, res, next) => {
     }
 })
 
+search.get('*', isAuthenticated, async (req, res, next) => {
+    res.status(200).send("Default Search Route.");
+})
+
 module.exports = search;
