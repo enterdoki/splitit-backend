@@ -2,12 +2,12 @@ const Sequelize = require('sequelize');
 const db = require('../db');
 
 const User = db.define('user', {
-    firstname : {
+    firstName : {
         type: Sequelize.STRING,
         allowNull: false,
         required: true
     },
-    lastname: {
+    lastName: {
         type: Sequelize.STRING,
         allowNull: false,
         required: true
@@ -26,6 +26,11 @@ const User = db.define('user', {
         allowNull: false,
         required:true,
         len: [2,20]
+    },
+    profilePicture: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        required:true
     }
 },{
     timestamps:false
