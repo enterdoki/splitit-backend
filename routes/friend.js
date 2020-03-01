@@ -33,7 +33,7 @@ friend.get('/:id', isAuthenticated, async (req, res, next) => {
             res.status(200).send(users);
         }
         else {
-            res.status(200).send("No friends.");
+            res.status(404).send("No friends.");
         }
     } catch (err) {
         res.status(400).send(err);
@@ -73,7 +73,7 @@ friend.post('/request/:id_one/:id_two', isAuthenticated, async (req, res, next) 
              res.status(200).send("Friend Request Sent!");
         }
         else {
-            res.status(200).send("One or both users doesn't exist or already pending request.");
+            res.status(400).send("One or both users doesn't exist or already pending request.");
         }
     } catch (err) {
         res.status(400).send(err);
@@ -108,11 +108,11 @@ friend.put('/accept/:id_one/:id_two', isAuthenticated, async (req, res, next) =>
                 res.status(200).send("Friend Request Accepted!");
             }
             else {
-                res.status(200).send("Could not accept friend request.");
+                res.status(400).send("Could not accept friend request.");
             }
         }
         else {
-            res.status(200).send("One or both users doesn't exist.");
+            res.status(404).send("One or both users doesn't exist.");
         }
     } catch (err) {
         res.status(400).send(err);
@@ -147,11 +147,11 @@ friend.put('/block/:id_one/:id_two', isAuthenticated, async (req, res, next) => 
                 res.status(200).send("Blocked Friend.");
             }
             else {
-                res.status(200).send("Could not block friend.");
+                res.status(400).send("Could not block friend.");
             }
         }
         else {
-            res.status(200).send("One or both users doesn't exist.");
+            res.status(404).send("One or both users doesn't exist.");
         }
     } catch (err) {
         res.status(400).send(err);
@@ -182,11 +182,11 @@ friend.delete('/unfriend/:id_one/:id_two', isAuthenticated, async (req, res, nex
                 res.status(200).send("Unfriended.");
             }
             else {
-                res.status(200).send("Could not delete friend.");
+                res.status(404).send("Could not delete friend.");
             }    
         }
         else {
-            res.status(200).send("One or both users doesn't exist.");
+            res.status(422).send("One or both users doesn't exist.");
         }
     } catch (err) {
         res.status(400).send(err);
@@ -217,11 +217,11 @@ friend.delete('/decline/:id_one/:id_two', isAuthenticated, async (req, res, next
                 res.status(200).send("Declined.");
             }
             else {
-                res.status(200).send("Could not decline friend request.");
+                res.status(400).send("Could not decline friend request.");
             }    
         }
         else {
-            res.status(200).send("One or both users doesn't exist.");
+            res.status(422).send("One or both users doesn't exist.");
         }
     } catch (err) {
         res.status(400).send(err);

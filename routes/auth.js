@@ -28,11 +28,15 @@ auth.post('/login', async (req, res, next) => {
                 let token = jwt.sign(payload, process.env.JWT_SECRET);
                 res.status(200).send({ user, token });
             } else {
+<<<<<<< HEAD
+                res.status(422).send('Password is incorrect.');
+=======
                 res.status(200).send('Password is incorrect.');
+>>>>>>> 4bbadce736c57d5c9939848058833b6734203792
             }
         }
         else {
-            res.status(200).send('Credentials invalid.');
+            res.status(422).send('Credentials invalid.');
         }
     } catch (err) {
         res.status(400).send(err);
@@ -64,20 +68,20 @@ auth.post('/register',
                 where: { email: req.body.email}
             })
             if(check) {
-                res.status(200).send("Email already exists.");
+                res.status(422).send("Email already exists.");
             }
             else {
                 let firstname = req.body.firstname
                 firstname = firstname[0].toUpperCase() + firstname.substr(1)
                 let lastname = req.body.lastname
                 lastname = lastname[0].toUpperCase() + lastname.substr(1)
-                let hash_password = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(8));
+                const hashPassword = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(8));
                 const url = "https://splitit.nyc3.cdn.digitaloceanspaces.com/default_picture.png";
                 let new_user = await User.create({
                     firstName: firstname,
                     lastName: lastname,
                     email: req.body.email,
-                    password: hash_password,
+                    password: hashPassword,
                     profilePicture: url
                 });
                 res.status(201).send(new_user);

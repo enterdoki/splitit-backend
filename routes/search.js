@@ -18,7 +18,7 @@ search.get('/:email', isAuthenticated, async (req, res, next) => {
             res.status(200).send(user);
         }
         else {
-            res.status(200).send("No user exists.");
+            res.status(404).send("No user exists.");
         }
     } catch(err) {
         res.status(400).send(err);
