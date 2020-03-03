@@ -28,11 +28,7 @@ auth.post('/login', async (req, res, next) => {
                 let token = jwt.sign(payload, process.env.JWT_SECRET);
                 res.status(200).send({ user, token });
             } else {
-<<<<<<< HEAD
                 res.status(422).send('Password is incorrect.');
-=======
-                res.status(200).send('Password is incorrect.');
->>>>>>> 4bbadce736c57d5c9939848058833b6734203792
             }
         }
         else {
