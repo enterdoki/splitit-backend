@@ -61,12 +61,12 @@ EXPECTS:
 user.post('/:id/upload', [isAuthenticated, upload], async (req, res, next) => {
     try {
         const url = `https://splitit.nyc3.cdn.digitaloceanspaces.com/${req.files[0].originalname}`
-        await Receipt.create({
+        let newReceipt = await Receipt.create({
             imageURL: url,
             uploadDate: Date.now(),
             userId: req.params.id
         })
-        res.status(201).send('Image uploaded.')
+        res.status(201).send(newReceipt)
     } catch (err) {
         res.status(400).send(err);
     }
