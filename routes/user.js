@@ -61,12 +61,24 @@ EXPECTS:
 user.post('/:id/upload', [isAuthenticated, upload], async (req, res, next) => {
     try {
         const url = `https://splitit.nyc3.cdn.digitaloceanspaces.com/${req.files[0].originalname}`
-        let new_receipt = await Receipt.create({
+        await Receipt.create({
             imageURL: url,
             uploadDate: Date.now(),
             userId: req.params.id
         })
-        res.status(201).send(new_receipt)
+
+        const body = {
+            url: url
+        }
+
+        const result = await axios.post('https://api.taggun.io/api/receipt/v1/simple/url', body, {
+            headers: {
+                "Content-Type": "application/json",
+                "apikey": process.env.TAGGUN_API_KEY
+              }
+        })
+
+        res.status(201).send(result['data'])
     } catch (err) {
         res.status(400).send(err);
     }
