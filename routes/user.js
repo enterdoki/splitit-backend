@@ -66,19 +66,7 @@ user.post('/:id/upload', [isAuthenticated, upload], async (req, res, next) => {
             uploadDate: Date.now(),
             userId: req.params.id
         })
-
-        const body = {
-            url: url
-        }
-
-        const result = await axios.post('https://api.taggun.io/api/receipt/v1/simple/url', body, {
-            headers: {
-                "Content-Type": "application/json",
-                "apikey": process.env.TAGGUN_API_KEY
-              }
-        })
-
-        res.status(201).send(result['data'])
+        res.status(201).send('Image uploaded.')
     } catch (err) {
         res.status(400).send(err);
     }
