@@ -51,6 +51,25 @@ user.get('/:id', isAuthenticated, async (req, res, next) => {
     }
 })
 
+/* GET /api/user/<id> - Gets all users 
+EXPECTS:
+  HEADERS:
+    - 'Authorization': 'Bearer <token>'
+*/
+user.get('/', isAuthenticated, async (req, res, next) => {
+    try {
+        const user = await User.findAll();
+        if (user) {
+            res.status(200).send(user);
+        }
+        else {
+            res.status(404).send("No user exists.");
+        }
+    } catch (err) {
+        res.status(400).send(err);
+    }
+})
+
 /* POST /api/user/<id>/upload - Saves uploaded image under given user
 EXPECTS:
   HEADERS:
@@ -61,12 +80,23 @@ EXPECTS:
 user.post('/:id/upload', [isAuthenticated, upload], async (req, res, next) => {
     try {
         const url = `https://splitit.nyc3.cdn.digitaloceanspaces.com/${req.files[0].originalname}`
-        let newReceipt = await Receipt.create({
+        await Receipt.create({
             imageURL: url,
             uploadDate: Date.now(),
             userId: req.params.id
         })
-        res.status(201).send(newReceipt)
+
+        const body = {
+            url: url
+        }
+
+        const result = await axios.post('https://api.taggun.io/api/receipt/v1/simple/url', body, {
+            headers: {
+                "Content-Type": "application/json",
+                "apikey": process.env.TAGGUN_API_KEY
+              }
+        })
+        res.status(201).send(result);
     } catch (err) {
         res.status(400).send(err);
     }
