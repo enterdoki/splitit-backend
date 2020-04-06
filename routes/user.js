@@ -86,18 +86,34 @@ user.post('/:id/upload', [isAuthenticated, upload], async (req, res, next) => {
             userId: req.params.id
         })
 
-        const body = {
-            url: url
-        }
-
-        const result = await axios.post('https://api.taggun.io/api/receipt/v1/simple/url', body, {
-            headers: {
-                "Content-Type": "application/json",
-                "apikey": process.env.TAGGUN_API_KEY
-              }
-        })
-        res.status(201).send(result);
+        res.status(201).send('Receipt uploaded.');
     } catch (err) {
+        res.status(400).send(err);
+    }
+})
+
+/* POST /api/user/receipt/<id>/update - Update name of receipt
+EXPECTS:
+  HEADERS:
+    - 'Authorization': 'Bearer <token>'
+  BODY (form-data):
+    - image: user selected image
+*/
+
+user.put('/receipt/:id/update', [isAuthenticated], async (req, res, next) => {
+    try {
+        const response = await Receipt.update({
+            name: req.body.name
+        },
+            { where: { id: req.params.id } }
+        );
+        if (response) {
+            res.status(200).send("Updated name of receipt!" + response);
+        }
+        else {
+            res.status(404).send("No receipt exists.");
+        }
+    } catch(err) {
         res.status(400).send(err);
     }
 })
