@@ -100,7 +100,7 @@ EXPECTS:
     - image: user selected image
 */
 
-user.put('/receipt/:id/update', [isAuthenticated], async (req, res, next) => {
+user.put('/receipt/:id/update', isAuthenticated, async (req, res, next) => {
     try {
         const response = await Receipt.update({
             name: req.body.name
