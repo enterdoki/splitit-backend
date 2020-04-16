@@ -40,6 +40,62 @@ friend.get('/:id', isAuthenticated, async (req, res, next) => {
     }
 })
 
+/* GET /api/friend/<id>/pending - Gets all pending friend requests of a given user
+EXPECTS:
+  HEADERS:
+    - 'Authorization': 'Bearer <token>'
+*/
+friend.get('/:id/pending', isAuthenticated, async (req, res, next) => {
+    try {
+        const users = await Friend.findAll({
+            where: { userOneId: req.params.id, status: statuses.PENDING },
+            include: [{
+                model: User,
+                as: 'userTwo',
+                attributes: { exclude: ['password'] }
+            }],
+            attributes: { exclude: ['id', 'status', 'userOneId', 'userTwoId'] }
+        })
+
+        if (users) {
+            res.status(200).send(users);
+        }
+        else {
+            res.status(404).send("No pending friend requests.");
+        }
+    } catch (err) {
+        res.status(400).send(err);
+    }
+})
+
+/* GET /api/friend/<id>/blocked - Gets all blocked friends of a given user
+EXPECTS:
+  HEADERS:
+    - 'Authorization': 'Bearer <token>'
+*/
+friend.get('/:id/blocked', isAuthenticated, async (req, res, next) => {
+    try {
+        const users = await Friend.findAll({
+            where: { userOneId: req.params.id, status: statuses.BLOCKED },
+            include: [{
+                model: User,
+                as: 'userTwo',
+                attributes: { exclude: ['password'] }
+            }],
+            attributes: { exclude: ['id', 'status', 'userOneId', 'userTwoId'] }
+        })
+
+        if (users) {
+            res.status(200).send(users);
+        }
+        else {
+            res.status(404).send("No blocked friends.");
+        }
+    } catch (err) {
+        res.status(400).send(err);
+    }
+})
+
 /* POST /api/friend/request/<id_one>/<id_two> - Sends a friend request from given user to another user
 EXPECTS:
   HEADERS:
