@@ -12,6 +12,28 @@ const statuses = {
     BLOCKED: 'BLOCKED'
 }
 
+/* GET /api/friend/status/<id_one>/<id_two> - Gets friendship status of two user
+EXPECTS:
+  HEADERS:
+    - 'Authorization': 'Bearer <token>'
+*/
+friend.get('/status/:id_one/:id_two', isAuthenticated, async (req, res, next) => {
+    try {
+        const users = await Friend.findOne({
+            where: { userOneId: req.params.id_one, userTwoId: req.params.id_two }
+        })
+
+        if (users) {
+            res.status(200).json({ status: users.status });
+        }
+        else {
+            res.status(404).send("No friendship status.");
+        }
+    } catch (err) {
+        res.status(400).send(err);
+    }
+})
+
 /* GET /api/friend/<id>/ - Gets all friends of a given user
 EXPECTS:
   HEADERS:
@@ -110,10 +132,10 @@ friend.post('/request/:id_one/:id_two', isAuthenticated, async (req, res, next) 
             where: { id: req.params.id_two }
         })
         const checkOne = await Friend.findOne({
-            where: { userOneId: req.params.id_one, userTwoId: req.params.id_two, status:statuses.PENDING}
+            where: { userOneId: req.params.id_one, userTwoId: req.params.id_two, status: statuses.PENDING }
         })
         const checkTwo = await Friend.findOne({
-            where: { userOneId: req.params.id_two, userTwoId: req.params.id_one, status:statuses.PENDING}
+            where: { userOneId: req.params.id_two, userTwoId: req.params.id_one, status: statuses.PENDING }
         })
         if (userOne && userTwo && !checkOne && !checkTwo) {
             await Friend.create({
@@ -126,7 +148,7 @@ friend.post('/request/:id_one/:id_two', isAuthenticated, async (req, res, next) 
                 userOneId: req.params.id_two,
                 userTwoId: req.params.id_one
             })
-             res.status(200).send("Friend Request Sent!");
+            res.status(200).send("Friend Request Sent!");
         }
         else {
             res.status(400).send("One or both users doesn't exist or already pending request.");
@@ -160,7 +182,7 @@ friend.put('/accept/:id_one/:id_two', isAuthenticated, async (req, res, next) =>
             },
                 { where: { userOneId: req.params.id_two, userTwoId: req.params.id_one, status: statuses.PENDING } }
             )
-            if(acceptOne.length > 1 && acceptTwo.length > 1) {
+            if (acceptOne.length > 1 && acceptTwo.length > 1) {
                 res.status(200).send("Friend Request Accepted!");
             }
             else {
@@ -192,14 +214,14 @@ friend.put('/block/:id_one/:id_two', isAuthenticated, async (req, res, next) => 
             const updateOne = await Friend.update({
                 status: statuses.BLOCKED
             },
-                { where: { userOneId: req.params.id_one, userTwoId: req.params.id_two, status: statuses.ACCEPTED} }
+                { where: { userOneId: req.params.id_one, userTwoId: req.params.id_two, status: statuses.ACCEPTED } }
             )
             const updateTwo = await Friend.update({
                 status: statuses.BLOCKED
             },
                 { where: { userOneId: req.params.id_two, userTwoId: req.params.id_one, status: statuses.ACCEPTED } }
             )
-            if(updateOne.length > 1 && updateTwo.length > 1) {
+            if (updateOne.length > 1 && updateTwo.length > 1) {
                 res.status(200).send("Blocked Friend.");
             }
             else {
@@ -234,12 +256,12 @@ friend.delete('/unfriend/:id_one/:id_two', isAuthenticated, async (req, res, nex
             const deleteTwo = await Friend.destroy({
                 where: { userOneId: req.params.id_two, userTwoId: req.params.id_one, status: statuses.ACCEPTED }
             })
-            if(deleteOne && deleteTwo) {
+            if (deleteOne && deleteTwo) {
                 res.status(200).send("Unfriended.");
             }
             else {
                 res.status(404).send("Could not delete friend.");
-            }    
+            }
         }
         else {
             res.status(422).send("One or both users doesn't exist.");
@@ -269,12 +291,12 @@ friend.delete('/decline/:id_one/:id_two', isAuthenticated, async (req, res, next
             const deleteTwo = await Friend.destroy({
                 where: { userOneId: req.params.id_two, userTwoId: req.params.id_one, status: statuses.PENDING }
             })
-            if(deleteOne && deleteTwo) {
+            if (deleteOne && deleteTwo) {
                 res.status(200).send("Declined.");
             }
             else {
                 res.status(400).send("Could not decline friend request.");
-            }    
+            }
         }
         else {
             res.status(422).send("One or both users doesn't exist.");
