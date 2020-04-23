@@ -104,7 +104,7 @@ friend.get('/:id/blocked', isAuthenticated, async (req, res, next) => {
                 as: 'userTwo',
                 attributes: { exclude: ['password'] }
             }],
-            attributes: { exclude: ['id', 'status', 'userOneId', 'userTwoId'] }
+            attributes: { exclude: ['id', 'status', 'userOneId', 'userTwoId', 'balance'] }
         })
 
         if (users) {
