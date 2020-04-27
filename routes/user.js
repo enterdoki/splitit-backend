@@ -79,7 +79,7 @@ EXPECTS:
 */
 user.post('/:id/upload', [isAuthenticated, upload], async (req, res, next) => {
     try {
-        const url = `https://splitit.nyc3.cdn.digitaloceanspaces.com/${req.files[0].originalname}`
+        const url = `https://splitit.nyc3.digitaloceanspaces.com/${req.files[0].originalname}`
         const data = await Receipt.create({
             imageURL: url,
             uploadDate: Date.now(),
@@ -149,7 +149,7 @@ EXPECTS:
 */
 user.put('/:id/picture', [isAuthenticated, upload], async (req, res, next) => {
     try {
-        const url = `https://splitit.nyc3.cdn.digitaloceanspaces.com/${req.files[0].originalname}`
+        const url = `https://splitit.nyc3.digitaloceanspaces.com/${req.files[0].originalname}`
         const user = await User.update({
             profilePicture: url
         },

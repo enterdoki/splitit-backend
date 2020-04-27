@@ -72,7 +72,7 @@ auth.post('/register',
                 let lastname = req.body.lastname
                 lastname = lastname[0].toUpperCase() + lastname.substr(1)
                 const hashPassword = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(8));
-                const url = "https://splitit.nyc3.cdn.digitaloceanspaces.com/default_picture.png";
+                const url = "https://splitit.nyc3.digitaloceanspaces.com/default_picture.png";
                 let new_user = await User.create({
                     firstName: firstname,
                     lastName: lastname,
