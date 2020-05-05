@@ -19,15 +19,15 @@ search.get('/:id', isAuthenticated, async (req, res, next) => {
             res.status(200).send(user);
         }
         else {
-            res.status(404).send("No users found.");
+            res.status(404).json({ error: "No users found." });
         }
     } catch (err) {
-        res.status(400).send(err);
+        res.status(400).json({ error: err });
     }
 })
 
 search.get('*', isAuthenticated, async (req, res, next) => {
-    res.status(200).send("Default Search Route.");
+    res.status(200).json({ message: "Default Search Route." });
 })
 
 module.exports = search;

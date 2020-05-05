@@ -5,7 +5,7 @@ const auth = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken')
 const { check, validationResult } = require('express-validator');
-const {User} = require('../database/models')
+const { User } = require('../database/models')
 
 auth.use(bodyParser.json());
 
@@ -19,7 +19,7 @@ EXPECTS:
 */
 auth.post('/login', async (req, res, next) => {
     try {
-        const user = await User.findOne({ 
+        const user = await User.findOne({
             where: { email: req.body.email }
         });
         if (user) {
@@ -28,14 +28,14 @@ auth.post('/login', async (req, res, next) => {
                 let token = jwt.sign(payload, process.env.JWT_SECRET);
                 res.status(200).send({ user, token });
             } else {
-                res.status(422).send('Password is incorrect.');
+                res.status(422).json({ error: 'Password is incorrect.' });
             }
         }
         else {
-            res.status(422).send('Credentials invalid.');
+            res.status(422).json({ error: 'Credentials invalid.' });
         }
     } catch (err) {
-        res.status(400).send(err);
+        res.status(400).json({ error: err });
     }
 })
 
@@ -61,10 +61,10 @@ auth.post('/register',
                 res.status(422).json({ errors: errors.array() })
             }
             const check = await User.findOne({
-                where: { email: req.body.email}
+                where: { email: req.body.email }
             })
-            if(check) {
-                res.status(422).send("Email already exists.");
+            if (check) {
+                res.status(422).json({ error: "Email already exists." });
             }
             else {
                 let firstname = req.body.firstname
@@ -83,12 +83,12 @@ auth.post('/register',
                 res.status(201).send(new_user);
             }
         } catch (err) {
-            res.status(400).send(err);
+            res.status(400).json({ error: err });
         }
     })
 
 auth.get('*', (req, res, next) => {
-    res.status(200).send("Default Auth route.");
+    res.status(200).json({ message: "Default Auth route." });
 })
 
 module.exports = auth;

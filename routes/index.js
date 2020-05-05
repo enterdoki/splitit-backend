@@ -10,7 +10,7 @@ router.use('/search', searchRoute);
 router.use('/friend', friendRoute);
 
 router.use((req, res, next) => {
-    res.status(200).send("Default API route.");
+    res.status(200).json({ message: "Default API route." });
 })
 
 module.exports = router;

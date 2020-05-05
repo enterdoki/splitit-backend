@@ -44,10 +44,10 @@ user.get('/:id', isAuthenticated, async (req, res, next) => {
             res.status(200).send(user);
         }
         else {
-            res.status(404).send("No user exists.");
+            res.status(404).json({ error: "No user exists." });
         }
     } catch (err) {
-        res.status(400).send(err);
+        res.status(400).json({ error: err });
     }
 })
 
@@ -63,10 +63,10 @@ user.get('/', isAuthenticated, async (req, res, next) => {
             res.status(200).send(user);
         }
         else {
-            res.status(404).send("No user exists.");
+            res.status(404).json({ error: "No user exists." });
         }
     } catch (err) {
-        res.status(400).send(err);
+        res.status(400).json({ error: err });
     }
 })
 
@@ -88,7 +88,7 @@ user.post('/:id/upload', [isAuthenticated, upload], async (req, res, next) => {
 
         res.status(201).send(data);
     } catch (err) {
-        res.status(400).send(err);
+        res.status(400).json({ error: err });
     }
 })
 
@@ -108,13 +108,13 @@ user.put('/receipt/:id/update', isAuthenticated, async (req, res, next) => {
             { where: { id: req.params.id } }
         );
         if (response) {
-            res.status(200).send("Updated name of receipt!" + response);
+            res.status(200).json({ message: "Updated name of receipt!" }, response);
         }
         else {
-            res.status(404).send("No receipt exists.");
+            res.status(404).json({ error: "No receipt exists." });
         }
-    } catch(err) {
-        res.status(400).send(err);
+    } catch (err) {
+        res.status(400).json({ error: err });
     }
 })
 
@@ -128,7 +128,7 @@ user.get('/:id/receipts', isAuthenticated, async (req, res, next) => {
         const user = await User.findOne({
             where: { id: req.params.id }
         })
-        if (!user) res.status(404).send("No user exists.")
+        if (!user) res.status(404).json({ error: "No user exists." })
         else {
             const receipts = await Receipt.findAll({
                 where: { userId: req.params.id }
@@ -136,7 +136,7 @@ user.get('/:id/receipts', isAuthenticated, async (req, res, next) => {
             res.status(200).send(receipts)
         }
     } catch (err) {
-        res.status(400).send(err);
+        res.status(400).json({ error: err });
     }
 })
 
@@ -156,13 +156,13 @@ user.put('/:id/picture', [isAuthenticated, upload], async (req, res, next) => {
             { where: { id: req.params.id } }
         );
         if (user) {
-            res.status(200).send("Updated profile picture!" + user);
+            res.status(200).json({ message: "Updated profile picture!" }, user);
         }
         else {
-            res.status(404).send("No user exists.");
+            res.status(404).json({ error: "No user exists." });
         }
     } catch (err) {
-        res.status(400).send(err);
+        res.status(400).json({ error: err });
     }
 })
 
@@ -173,25 +173,25 @@ EXPECTS:
   BODY :
     - N/A
 */
-user.put('/:id/:balance', isAuthenticated, async(req, res, next) => {
+user.put('/:id/:balance', isAuthenticated, async (req, res, next) => {
     try {
         const user = await User.update({
             balance: req.params.balance
         },
             { where: { id: req.params.id } }
         );
-        if(!user) {
-            res.status(404).send('No user exists.');
+        if (!user) {
+            res.status(404).json({ error: 'No user exists.' });
         }
         else {
-            res.status(200).send('Balance updated.' + user);
+            res.status(200).json({ message: 'Balance updated.' }, user);
         }
-    } catch(err) {
-        res.status(400).send(err);
+    } catch (err) {
+        res.status(400).json({ error: err });
     }
 })
 user.get('*', (req, res, next) => {
-    res.status(200).send("Default User Route.");
+    res.status(200).json({ message: "Default User Route." });
 })
 
 module.exports = user;

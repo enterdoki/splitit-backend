@@ -27,10 +27,10 @@ friend.get('/status/:id_one/:id_two', isAuthenticated, async (req, res, next) =>
             res.status(200).json({ status: users.status });
         }
         else {
-            res.status(404).send("No friendship status.");
+            res.status(404).json({ error: "No friendship status." });
         }
     } catch (err) {
-        res.status(400).send(err);
+        res.status(400).json({ error: err });
     }
 })
 
@@ -55,10 +55,10 @@ friend.get('/:id', isAuthenticated, async (req, res, next) => {
             res.status(200).send(users);
         }
         else {
-            res.status(404).send("No friends.");
+            res.status(404).json({ error: "No friends." });
         }
     } catch (err) {
-        res.status(400).send(err);
+        res.status(400).json({ error: err });
     }
 })
 
@@ -83,10 +83,10 @@ friend.get('/:id/pending', isAuthenticated, async (req, res, next) => {
             res.status(200).send(users);
         }
         else {
-            res.status(404).send("No pending friend requests.");
+            res.status(404).json({ error: "No pending friend requests." });
         }
     } catch (err) {
-        res.status(400).send(err);
+        res.status(400).json({ error: err });
     }
 })
 
@@ -111,10 +111,10 @@ friend.get('/:id/blocked', isAuthenticated, async (req, res, next) => {
             res.status(200).send(users);
         }
         else {
-            res.status(404).send("No blocked friends.");
+            res.status(404).json({ error: "No blocked friends." });
         }
     } catch (err) {
-        res.status(400).send(err);
+        res.status(400).json({ error: err });
     }
 })
 
@@ -148,13 +148,13 @@ friend.post('/request/:id_one/:id_two', isAuthenticated, async (req, res, next) 
                 userOneId: req.params.id_two,
                 userTwoId: req.params.id_one
             })
-            res.status(200).send("Friend Request Sent!");
+            res.status(200).json({ message: "Friend Request Sent!" });
         }
         else {
-            res.status(400).send("One or both users doesn't exist or already pending request.");
+            res.status(400).json({ error: "One or both users doesn't exist or already pending request." });
         }
     } catch (err) {
-        res.status(400).send(err);
+        res.status(400).json({ error: err });
     }
 });
 
@@ -183,17 +183,17 @@ friend.put('/accept/:id_one/:id_two', isAuthenticated, async (req, res, next) =>
                 { where: { userOneId: req.params.id_two, userTwoId: req.params.id_one, status: statuses.PENDING } }
             )
             if (acceptOne.length > 1 && acceptTwo.length > 1) {
-                res.status(200).send("Friend Request Accepted!");
+                res.status(200).json({ message: "Friend Request Accepted!" });
             }
             else {
-                res.status(400).send("Could not accept friend request.");
+                res.status(400).json({ error: "Could not accept friend request." });
             }
         }
         else {
-            res.status(404).send("One or both users doesn't exist.");
+            res.status(404).json({ error: "One or both users doesn't exist." });
         }
     } catch (err) {
-        res.status(400).send(err);
+        res.status(400).json({ error: err });
     }
 });
 
@@ -222,17 +222,17 @@ friend.put('/block/:id_one/:id_two', isAuthenticated, async (req, res, next) => 
                 { where: { userOneId: req.params.id_two, userTwoId: req.params.id_one, status: statuses.ACCEPTED } }
             )
             if (updateOne.length > 1 && updateTwo.length > 1) {
-                res.status(200).send("Blocked Friend.");
+                res.status(200).json({ message: "Blocked Friend." });
             }
             else {
-                res.status(400).send("Could not block friend.");
+                res.status(400).json({ error: "Could not block friend." });
             }
         }
         else {
-            res.status(404).send("One or both users doesn't exist.");
+            res.status(404).json({ error: "One or both users doesn't exist." });
         }
     } catch (err) {
-        res.status(400).send(err);
+        res.status(400).json({ error: err });
     }
 });
 
@@ -257,17 +257,17 @@ friend.delete('/unfriend/:id_one/:id_two', isAuthenticated, async (req, res, nex
                 where: { userOneId: req.params.id_two, userTwoId: req.params.id_one, status: statuses.ACCEPTED }
             })
             if (deleteOne && deleteTwo) {
-                res.status(200).send("Unfriended.");
+                res.status(200).json({ message: "Unfriended." });
             }
             else {
-                res.status(404).send("Could not delete friend.");
+                res.status(404).json({ error: "Could not delete friend." });
             }
         }
         else {
-            res.status(422).send("One or both users doesn't exist.");
+            res.status(422).json({ error: "One or both users doesn't exist." });
         }
     } catch (err) {
-        res.status(400).send(err);
+        res.status(400).json({ error: err });
     }
 })
 
@@ -292,22 +292,22 @@ friend.delete('/decline/:id_one/:id_two', isAuthenticated, async (req, res, next
                 where: { userOneId: req.params.id_two, userTwoId: req.params.id_one, status: statuses.PENDING }
             })
             if (deleteOne && deleteTwo) {
-                res.status(200).send("Declined.");
+                res.status(200).json({ message: "Declined." });
             }
             else {
-                res.status(400).send("Could not decline friend request.");
+                res.status(400).json({ error: "Could not decline friend request." });
             }
         }
         else {
-            res.status(422).send("One or both users doesn't exist.");
+            res.status(422).json({ error: "One or both users doesn't exist." });
         }
     } catch (err) {
-        res.status(400).send(err);
+        res.status(400).json({ error: err });
     }
 })
 
 friend.get('*', async (req, res, next) => {
-    res.status(200).send("Default Friend Route.");
+    res.status(200).json({ message: "Default Friend Route." });
 })
 
 module.exports = friend;
