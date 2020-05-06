@@ -156,7 +156,7 @@ user.put('/:id/picture', [isAuthenticated, upload], async (req, res, next) => {
             { where: { id: req.params.id } }
         );
         if (user) {
-            res.status(200).json({ message: "Updated profile picture!" }, user);
+            res.status(200).json({ message: "Updated profile picture!" });
         }
         else {
             res.status(404).json({ error: "No user exists." });
@@ -184,7 +184,7 @@ user.put('/:id/:balance', isAuthenticated, async (req, res, next) => {
             res.status(404).json({ error: 'No user exists.' });
         }
         else {
-            res.status(200).json({ message: 'Balance updated.' }, user);
+            res.status(200).json({ message: 'Balance updated.' });
         }
     } catch (err) {
         res.status(400).json({ error: err });
