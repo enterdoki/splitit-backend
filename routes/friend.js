@@ -46,9 +46,9 @@ friend.get('/:id', isAuthenticated, async (req, res, next) => {
             include: [{
                 model: User,
                 as: 'userTwo',
-                attributes: { exclude: ['password'] }
+                attributes: { exclude: ['password', 'balance'] }
             }],
-            attributes: { exclude: ['id', 'status', 'userOneId', 'userTwoId', 'balance'] }
+            attributes: { exclude: ['id', 'status', 'userOneId', 'userTwoId'] }
         })
 
         if (users) {
@@ -74,7 +74,7 @@ friend.get('/:id/pending', isAuthenticated, async (req, res, next) => {
             include: [{
                 model: User,
                 as: 'userTwo',
-                attributes: { exclude: ['password'] }
+                attributes: { exclude: ['password', 'balance'] }
             }],
             attributes: { exclude: ['id', 'status', 'userOneId', 'userTwoId', 'balance'] }
         })
