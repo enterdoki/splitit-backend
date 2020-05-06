@@ -108,7 +108,7 @@ user.put('/receipt/:id/update', isAuthenticated, async (req, res, next) => {
             { where: { id: req.params.id } }
         );
         if (response) {
-            res.status(200).json({ message: "Updated name of receipt!" }, response);
+            res.status(200).json({ message: "Updated name of receipt!" });
         }
         else {
             res.status(404).json({ error: "No receipt exists." });
