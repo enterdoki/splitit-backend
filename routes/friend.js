@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const friend = express.Router();
 const isAuthenticated = require('../middleware/authController');
 const { User, Friend } = require('../database/models');
+const Sequelize = require('sequelize');
 
 friend.use(bodyParser.json());
 
@@ -48,7 +49,7 @@ friend.get('/:id', isAuthenticated, async (req, res, next) => {
                 as: 'userTwo',
                 attributes: { exclude: ['password', 'balance'] }
             }],
-            attributes: { exclude: ['id', 'status', 'userOneId', 'userTwoId'] }
+            attributes: { exclude: ['id', 'status', 'userOneId', 'userTwoId', 'requester'] }
         })
 
         if (users) {
@@ -69,14 +70,17 @@ EXPECTS:
 */
 friend.get('/:id/pending', isAuthenticated, async (req, res, next) => {
     try {
+        const Op = Sequelize.Op;
         const users = await Friend.findAll({
-            where: { userOneId: req.params.id, status: statuses.PENDING },
+            where: {
+                userOneId: req.params.id, status: statuses.PENDING, requester: { [Op.ne]: req.params.id }
+            },
             include: [{
                 model: User,
                 as: 'userTwo',
                 attributes: { exclude: ['password', 'balance'] }
             }],
-            attributes: { exclude: ['id', 'status', 'userOneId', 'userTwoId', 'balance'] }
+            attributes: { exclude: ['id', 'status', 'userOneId', 'userTwoId', 'balance', 'requester'] }
         })
 
         if (users) {
@@ -104,7 +108,7 @@ friend.get('/:id/blocked', isAuthenticated, async (req, res, next) => {
                 as: 'userTwo',
                 attributes: { exclude: ['password'] }
             }],
-            attributes: { exclude: ['id', 'status', 'userOneId', 'userTwoId', 'balance'] }
+            attributes: { exclude: ['id', 'status', 'userOneId', 'userTwoId', 'balance', 'requester'] }
         })
 
         if (users) {
@@ -140,11 +144,13 @@ friend.post('/request/:id_one/:id_two', isAuthenticated, async (req, res, next) 
         if (userOne && userTwo && !checkOne && !checkTwo) {
             await Friend.create({
                 status: statuses.PENDING,
+                requester: req.params.id_one,
                 userOneId: req.params.id_one,
                 userTwoId: req.params.id_two
             })
             await Friend.create({
                 status: statuses.PENDING,
+                requester: req.params.id_one,
                 userOneId: req.params.id_two,
                 userTwoId: req.params.id_one
             })
@@ -165,12 +171,12 @@ EXPECTS:
 */
 friend.put('/accept/:id_one/:id_two', isAuthenticated, async (req, res, next) => {
     try {
-        const userOne = await User.findOne({
-            where: { id: req.params.id_one }
-        })
-        const userTwo = await User.findOne({
-            where: { id: req.params.id_two }
-        })
+        const userOne = await Friend.findOne(
+            { where: { userOneId: req.params.id_one, userTwoId: req.params.id_two, status: statuses.PENDING } }
+        )
+        const userTwo = await Friend.findOne(
+            { where: { userOneId: req.params.id_two, userTwoId: req.params.id_one, status: statuses.PENDING } }
+        )
         if (userOne && userTwo) {
             const acceptOne = await Friend.update({
                 status: statuses.ACCEPTED
@@ -182,7 +188,7 @@ friend.put('/accept/:id_one/:id_two', isAuthenticated, async (req, res, next) =>
             },
                 { where: { userOneId: req.params.id_two, userTwoId: req.params.id_one, status: statuses.PENDING } }
             )
-            if (acceptOne.length > 1 && acceptTwo.length > 1) {
+            if (acceptOne && acceptTwo) {
                 res.status(200).json({ message: "Friend Request Accepted!" });
             }
             else {
@@ -204,12 +210,12 @@ EXPECTS:
 */
 friend.put('/block/:id_one/:id_two', isAuthenticated, async (req, res, next) => {
     try {
-        const userOne = await User.findOne({
-            where: { id: req.params.id_one }
-        })
-        const userTwo = await User.findOne({
-            where: { id: req.params.id_two }
-        })
+        const userOne = await Friend.findOne(
+            { where: { userOneId: req.params.id_one, userTwoId: req.params.id_two, status: statuses.ACCEPTED } }
+        )
+        const userTwo = await Friend.findOne(
+            { where: { userOneId: req.params.id_two, userTwoId: req.params.id_one, status: statuses.ACCEPTED } }
+        )
         if (userOne && userTwo) {
             const updateOne = await Friend.update({
                 status: statuses.BLOCKED
@@ -221,7 +227,7 @@ friend.put('/block/:id_one/:id_two', isAuthenticated, async (req, res, next) => 
             },
                 { where: { userOneId: req.params.id_two, userTwoId: req.params.id_one, status: statuses.ACCEPTED } }
             )
-            if (updateOne.length > 1 && updateTwo.length > 1) {
+            if (updateOne.length > 0 && updateTwo.length > 0) {
                 res.status(200).json({ message: "Blocked Friend." });
             }
             else {
@@ -243,12 +249,12 @@ EXPECTS:
 */
 friend.delete('/unfriend/:id_one/:id_two', isAuthenticated, async (req, res, next) => {
     try {
-        const userOne = await User.findOne({
-            where: { id: req.params.id_one }
-        })
-        const userTwo = await User.findOne({
-            where: { id: req.params.id_two }
-        })
+        const userOne = await Friend.findOne(
+            { where: { userOneId: req.params.id_one, userTwoId: req.params.id_two, status: statuses.ACCEPTED } }
+        )
+        const userTwo = await Friend.findOne(
+            { where: { userOneId: req.params.id_two, userTwoId: req.params.id_one, status: statuses.ACCEPTED } }
+        )
         if (userOne && userTwo) {
             const deleteOne = await Friend.destroy({
                 where: { userOneId: req.params.id_one, userTwoId: req.params.id_two, status: statuses.ACCEPTED }
@@ -278,12 +284,12 @@ EXPECTS:
 */
 friend.delete('/decline/:id_one/:id_two', isAuthenticated, async (req, res, next) => {
     try {
-        const userOne = await User.findOne({
-            where: { id: req.params.id_one }
-        })
-        const userTwo = await User.findOne({
-            where: { id: req.params.id_two }
-        })
+        const userOne = await Friend.findOne(
+            { where: { userOneId: req.params.id_one, userTwoId: req.params.id_two, status: statuses.PENDING } }
+        )
+        const userTwo = await Friend.findOne(
+            { where: { userOneId: req.params.id_two, userTwoId: req.params.id_one, status: statuses.PENDING } }
+        )
         if (userOne && userTwo) {
             const deleteOne = await Friend.destroy({
                 where: { userOneId: req.params.id_one, userTwoId: req.params.id_two, status: statuses.PENDING }

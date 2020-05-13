@@ -12,6 +12,11 @@ const Friend = db.define('friend', {
         allowNull: false,
         required: false,
         defaultValue: 0.00
+    },
+    requester: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        required: true,
     }
 },{
     timestamps:false
