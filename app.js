@@ -9,9 +9,9 @@ app.use(cors());
 app.use('/api', router);
 
 app.get('/', (req, res, next) => {
-    res.status(200).send("Default Route.");
+    res.status(200).json({ message: "Default Route." });
 })
 
 app.listen(port, () => {
-    console.log(`Server listening on port: ${port}`); 
+    console.log(`Server listening on port: ${port}`);
 })
