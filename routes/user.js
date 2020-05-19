@@ -1,33 +1,74 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const bodyParser = require('body-parser');
 const user = express.Router();
 const aws = require('aws-sdk');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
+const { Storage } = require('@google-cloud/storage');
+const util = require('util');
 const { User, Receipt } = require('../database/models')
 const isAuthenticated = require('../middleware/authController');
 
+const { format } = util;
+
 user.use(bodyParser.json());
 
-const spacesEndpoint = new aws.Endpoint('nyc3.digitaloceanspaces.com');
-const s3 = new aws.S3({
-    endpoint: spacesEndpoint,
-    accessKeyId: process.env.ACCESS_KEY_ID,
-    secretAccessKey: process.env.SECRET_ACCESS_KEY
-});
+const gc = new Storage({
+    keyFilename: path.join(__dirname, process.env.GOOGLE_CREDENTIALS),
+    projectId: 'splitit-277702'
+})
 
-const upload = multer({
-    storage: multerS3({
-        s3: s3,
-        bucket: 'splitit',
-        acl: 'public-read-write',
-        key: (req, file, cb) => {
-            console.log(file)
-            cb(null, file.originalname);
-        }
+const splitBucket = gc.bucket('splitit-bucket');
+
+const multerMid = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        // no larger than 100 mb.
+        fileSize: 100 * 1024 * 1024,
+    },
+})
+
+user.use(multerMid.single('file'));
+
+const uploadImage = (file, id) => new Promise((resolve, reject) => {
+    const { originalname, buffer } = file
+
+    const blob = splitBucket.file(id + '_' + originalname.replace(/ /g, "_"))
+    const blobStream = blob.createWriteStream({
+        resumable: false
     })
-}).array('image', 1);
+    blobStream.on('finish', () => {
+        const publicUrl = format(
+            `https://storage.googleapis.com/${splitBucket.name}/${blob.name}`
+        )
+        resolve(publicUrl)
+    })
+        .on('error', () => {
+            reject(`Unable to upload image, something went wrong`)
+        })
+        .end(buffer)
+})
+
+// const spacesEndpoint = new aws.Endpoint('nyc3.digitaloceanspaces.com');
+// const s3 = new aws.S3({
+//     endpoint: spacesEndpoint,
+//     accessKeyId: process.env.ACCESS_KEY_ID,
+//     secretAccessKey: process.env.SECRET_ACCESS_KEY
+// });
+
+// const upload = multer({
+//     storage: multerS3({
+//         s3: s3,
+//         bucket: 'splitit',
+//         acl: 'public-read-write',
+//         key: (req, file, cb) => {
+//             console.log(file)
+//             cb(null, file.originalname);
+//         }
+//     })
+// }).array('image', 1);
 
 /* GET /api/user/<id> - Gets info of given user
 EXPECTS:
@@ -77,11 +118,15 @@ EXPECTS:
   BODY (form-data):
     - image: user selected image
 */
-user.post('/:id/upload', [isAuthenticated, upload], async (req, res, next) => {
+user.post('/:id/upload', isAuthenticated, async (req, res, next) => {
     try {
-        const url = `https://splitit.nyc3.digitaloceanspaces.com/${req.files[0].originalname}`
+        
+        const myFile = req.file
+        const imageUrl = await uploadImage(myFile, req.params.id);
+
+        // const url = `https://splitit.nyc3.digitaloceanspaces.com/${req.files[0].originalname}`
         const data = await Receipt.create({
-            imageURL: url,
+            imageURL: imageUrl,
             uploadDate: Date.now(),
             userId: req.params.id
         })
@@ -147,11 +192,15 @@ EXPECTS:
   BODY (form-data):
     - image: user selected image
 */
-user.put('/:id/picture', [isAuthenticated, upload], async (req, res, next) => {
+user.put('/:id/picture', isAuthenticated, async (req, res, next) => {
     try {
-        const url = `https://splitit.nyc3.digitaloceanspaces.com/${req.files[0].originalname}`
+
+        const myFile = req.file
+        const imageUrl = await uploadImage(myFile, req.params.id);
+
+        // const url = `https://splitit.nyc3.digitaloceanspaces.com/${req.files[0].originalname}`
         const user = await User.update({
-            profilePicture: url
+            profilePicture: imageUrl
         },
             { where: { id: req.params.id } }
         );
